@@ -1,3 +1,4 @@
+#!/usr/bin/python
 """
 |\ --- \  /  --- |
 |/  |   \/  |    |
@@ -7,7 +8,8 @@ WRANGLER
 """
 #Made by Kelton and his Dad
 #v. 1 completed 12/27/13
-
+import sys
+import os
 import pygame
 import random
 
@@ -16,8 +18,8 @@ DOWN = (0, 1)
 LEFT = (-1, 0)
 RIGHT = (1, 0)
 OBSTACLE_COUNT = 50
-width = 640
-height = 400
+WIDTH = 640
+HEIGHT = 400
 RED = (255, 0, 0 )
 WHITE = (255, 255, 255)
 
@@ -42,7 +44,7 @@ class MovingPixel:
         self.x += self.hdir
         self.y += self.vdir
 
-        if self.x <= 0 or self.x >= width or self.y <= 0 or self.y >= height:
+        if self.x <= 0 or self.x >= WIDTH or self.y <= 0 or self.y >= HEIGHT:
             self.crashed = True
             return
         r, g, b, a = self.surface.get_at((self.x, self.y))
@@ -57,40 +59,68 @@ class MovingPixel:
 def create_obstacles(count):
     pix_collection = []
     for i in range(0,count):
-        """random_pixel = (random.randint(1, width-1), random.randint(1, height-1))
-        pix_collection.append( (random_pixel[0]-1, random_pixel[1]) )
-        pix_collection.append( (random_pixel[0]+1, random_pixel[1]) )
-        pix_collection.append( (random_pixel[0], random_pixel[1]-1) )
-        pix_collection.append( (random_pixel[0], random_pixel[1]+1) )"""
         create_obstacle(pix_collection)
     return pix_collection
 
 def create_obstacle(collection):
-    random_pixel = (random.randint(1, width-1), random.randint(1, height-1))
+    random_pixel = (random.randint(1, WIDTH-1), random.randint(1, HEIGHT-1))
     collection.append( (random_pixel[0]-1, random_pixel[1]) )
     collection.append( (random_pixel[0]+1, random_pixel[1]) )
     collection.append( (random_pixel[0], random_pixel[1]-1) )
     collection.append( (random_pixel[0], random_pixel[1]+1) )
     return
 
-screen = pygame.display.set_mode((width, height))
+def get_highscore():
+    highscore = -1
+    
+    if os.path.exists("highscore.txt") == False:
+        # create the new file and set the score to 0
+        file_handle = open("highscore.txt", 'w')
+        file_handle.write( "0" )
+        file_handle.close()
+        highscore = 0
+    else:
+        # read in the highscore and return it
+        file_handle = open("highscore.txt", 'r')
+        highscore = int(file_handle.readline())
+        file_handle.close()
+        
+    return highscore
+
+def set_highscore(new_highscore):
+    file_handle = open("highscore.txt", 'w')
+    file_handle.write(str(new_highscore))
+    file_handle.close()
+
+# initialize the game
+
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pixel Wrangler")
 clock = pygame.time.Clock()
 running = True
 tick_count = 0
 pygame.init()
+# sound!
+pygame.mixer.init()
+pygame.mixer.music.load('retro.wav')
+pygame.mixer.music.play(-1)
 
-pix = MovingPixel(screen, width/2, height/2)
+pix = MovingPixel(screen, WIDTH/2, HEIGHT/2)
 
 random_pixels = create_obstacles(OBSTACLE_COUNT)
     
 while running:
     RAND_DIR = random.randint(1, 4)
     pix.move()
-    if pix.x <= 0 or pix.x >= width or pix.y <= 0 or pix.y >= height or pix.crashed:
+    if pix.x <= 0 or pix.x >= WIDTH or pix.y <= 0 or pix.y >= HEIGHT or pix.crashed:
         print "Crash!"
-        print "Score:" + str(pygame.time.get_ticks() / 100)
-        running = False 
+        score = pygame.time.get_ticks() / 100
+        if score > get_highscore():
+            set_highscore(score)
+            print "New Highscore!"
+            
+        print "Score:" + str(score)
+        running = False
     
     screen.fill((0, 0, 0))
 
@@ -102,14 +132,20 @@ while running:
         tick_count += 10
         
     for pixel in random_pixels:
-        screen.set_at(pixel, RED )
+        screen.set_at(pixel, RED)
         
     pix.draw(screen)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            print "Score:" + str(pygame.time.get_ticks() / 100)
+            score = pygame.time.get_ticks() / 100
+            if score > get_highscore():
+                set_highscore(score)
+                print "New Highscore!"
+            
+            print "Score:" + str(score)
             running = False
+            
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
                 pix.direction(UP)
