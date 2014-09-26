@@ -7,7 +7,7 @@
 WRANGLER
 """
 # Made by Kelton and his Dad
-#v. 1 completed 12/27/13
+# v. 1 completed 12/27/13
 
 import sys
 import os
@@ -21,7 +21,7 @@ RIGHT = (1, 0)
 OBSTACLE_COUNT = 50
 WIDTH = 640
 HEIGHT = 400
-RED = (255, 0, 0 )
+RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 
 
@@ -35,9 +35,9 @@ class MovingPixel:
         self.surface = surface
         self.crashed = False
 
-    def direction(self, dir):
+    def direction(self, pixeldirection):
         """Changes the pixel's direction"""
-        self.hdir, self.vdir = dir
+        self.hdir, self.vdir = pixeldirection
 
     def move(self):
         """Moves the Pixel"""
@@ -73,9 +73,7 @@ def create_obstacle(collection):
 
 
 def get_highscore():
-    highscore = -1
-
-    if os.path.exists("highscore.txt") == False:
+    if not os.path.exists("highscore.txt"):
         # create the new file and set the score to 0
         file_handle = open("highscore.txt", 'w')
         file_handle.write("0")
@@ -174,7 +172,7 @@ def main():
 
     running = True
     while running:
-        RAND_DIR = random.randint(1, 4)
+        random_direction = random.randint(1, 4)
         pix.move()
         score = pygame.time.get_ticks() / 100
         if pix.x <= 0 or pix.x >= WIDTH or pix.y <= 0 or pix.y >= HEIGHT or pix.crashed:
@@ -183,7 +181,7 @@ def main():
                 set_highscore(score)
                 print "New Highscore!"
 
-            #running = end_menu(screen, score)
+            # running = end_menu(screen, score)
             print "Score: " + str(score)
             print "Current Highscore:" + str(get_highscore())
             running = False
@@ -223,13 +221,13 @@ def main():
                 elif event.key == pygame.K_ESCAPE:
                     sys.exit()
 
-                if RAND_DIR == 1:
+                if random_direction == 1:
                     pix.direction(RIGHT)
-                elif RAND_DIR == 2:
+                elif random_direction == 2:
                     pix.direction(DOWN)
-                elif RAND_DIR == 3:
+                elif random_direction == 3:
                     pix.direction(UP)
-                elif RAND_DIR == 4:
+                elif random_direction == 4:
                     pix.direction(LEFT)
 
         display_score(screen, (0, 0), score)
